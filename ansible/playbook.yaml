@@ -1,0 +1,24 @@
+---
+- hosts: webservers
+  #connection: local
+  remote_user: packer
+  sudo_user: root
+  sudo: true
+  
+  tasks:
+
+#  - name: Pull configuration file
+#    synchronize: mode=pull src=sync/etc dest=/etc/sudoers
+
+#  - name: Create file
+#    file: dest=/etc/sudoers.d/local-sudoers state=touch
+
+  - name: Copy configuration file
+    copy: src=sync/etc/sudoers.d/local-sudoers dest=/etc/sudoers.d/local-sudoers owner=root group=root mode=0440
+
+  - name: Ensure https support for apt is installed
+    apt: pkg=apt-transport-https state=present
+
+  - name: install nginx
+    action: apt pkg=nginx ensure=installed
+
