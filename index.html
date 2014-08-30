@@ -1,0 +1,174 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>dev-automation-small by jbarker</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>dev-automation-small</h1>
+        <p>From the talk &quot;Automation in the Small: Code to Cloud&quot;</p>
+
+        <p class="view"><a href="https://github.com/jbarker/dev-automation-small">View the Project on GitHub <small>jbarker/dev-automation-small</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/jbarker/dev-automation-small/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/jbarker/dev-automation-small/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/jbarker/dev-automation-small">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a name="dev-automation-small" class="anchor" href="#dev-automation-small"><span class="octicon octicon-link"></span></a>dev-automation-small</h1>
+
+<p><em>Developer automation in the small.</em></p>
+
+<p>An example of integrated tools for machine configuration, local software
+development, and deployment to a cloud hosting provider.</p>
+
+<h2>
+<a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h2>
+
+<ul>
+<li>Operating System: <a href="https://www.debian.org/releases/wheezy/">Debian Wheezy</a> 7.x AMD64</li>
+<li>System definition: <a href="http://www.packer.io/">Packer</a>
+
+<ul>
+<li>Builders
+
+<ul>
+<li><a href="http://www.packer.io/docs/builders/virtualbox.html">VirtualBox</a></li>
+</ul>
+</li>
+<li>Provisioners
+
+<ul>
+<li><a href="http://www.packer.io/docs/provisioners/ansible-local.html">Ansible</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul><h2>
+<a name="setup-on-a-mac" class="anchor" href="#setup-on-a-mac"><span class="octicon octicon-link"></span></a>Setup on a Mac</h2>
+
+<p>You may run <code>setup-mac.sh</code> to install the required tools on a Mac.</p>
+
+<pre><code> $ ./setup-mac.sh
+</code></pre>
+
+<p>This example has been created &amp; verified on Mac OS X 10.9.x.</p>
+
+<h2>
+<a name="configuring-your-ssh-public-key" class="anchor" href="#configuring-your-ssh-public-key"><span class="octicon octicon-link"></span></a>Configuring your SSH public key</h2>
+
+<p>You must update the script at <code>/packer/scripts/common/publickey.sh</code> to copy
+your public key. This will allow Ansible to access your machines. Without this
+change Ansible will attempt to use the default public key, and you will not be
+able to access your machines.</p>
+
+<p>You must also update your local SSH configuration. In your local file
+<code>~/.ssh/config</code> add an entry that tells SSH to use your private key when
+connecting to your virtual machine:</p>
+
+<pre><code>Host localhost
+HostName localhost
+Port 3022
+IdentitiesOnly yes
+IdentityFile ~/.ssh/id_rsa
+TCPKeepAlive yes
+User packer
+</code></pre>
+
+<p>You should edit the above line <code>IdentityFile ~/.ssh/id_rsa</code> so that the file path is your private key that matches your public key configured in the script at <code>/packer/scripts/common/publickey.sh</code>.</p>
+
+<h2>
+<a name="build-a-machine-for-virtualbox" class="anchor" href="#build-a-machine-for-virtualbox"><span class="octicon octicon-link"></span></a>Build a machine for VirtualBox</h2>
+
+<p>Use <code>packer</code> to configure machines. First, confirm the packer template file is valid.</p>
+
+<pre><code>$ cd packer
+$ packer validate debian-7.x-amd64.json
+Template validated successfully.
+</code></pre>
+
+<p>Build with <code>virtualbox-iso</code> to configure local machines for development use.</p>
+
+<pre><code>$ packer build -only=virtualbox-iso -force debian-7.x-amd64.json
+</code></pre>
+
+<h2>
+<a name="run-a-machine-with-virtualbox" class="anchor" href="#run-a-machine-with-virtualbox"><span class="octicon octicon-link"></span></a>Run a machine with VirtualBox</h2>
+
+<p>You may run the machine with VirtualBox. First, import the newly built machine:</p>
+
+<pre><code> $ cd packer
+ $ ./vm-import.sh
+</code></pre>
+
+<p>Then, run the virtual machine:</p>
+
+<pre><code> $ ./vm-start.sh
+</code></pre>
+
+<p>The virtual machine will run in headless mode, no UI should be visible.</p>
+
+<h2>
+<a name="configure-a-machine-with-ansible" class="anchor" href="#configure-a-machine-with-ansible"><span class="octicon octicon-link"></span></a>Configure a machine with Ansible</h2>
+
+<p>Use <code>ansible</code> for configuration management of machines.</p>
+
+<p>When your machines are running, you may connect to them via SSH and configure
+them with Ansible.</p>
+
+<p>You may setup your machines with the command:</p>
+
+<pre><code>$ cd ansible
+$ ansible -i inventory.ini all -m setup -vvvv
+</code></pre>
+
+<p>You may ping your machines with the command:</p>
+
+<pre><code>$ ansible -i inventory.ini all -m ping
+</code></pre>
+
+<h2>
+<a name="related" class="anchor" href="#related"><span class="octicon octicon-link"></span></a>Related</h2>
+
+<ul>
+<li>Presentation from <a href="http://meetu.ps/2vCs1K">ebay tech talk Berlin</a> (21 August 2014)
+
+<ul>
+<li>PDF: under the <code>doc</code> directory</li>
+<li>Sharing: at <a href="http://www.slideshare.net/jbrkr/automation-smallcodeclouddevops">SlideShare</a>
+</li>
+</ul>
+</li>
+<li>
+<a href="http://www.jbarker.com/blog/2014/ebay-berlin-devops-cloud">Blog post</a> at jbarker.com</li>
+</ul><h2>
+<a name="resources" class="anchor" href="#resources"><span class="octicon octicon-link"></span></a>Resources</h2>
+
+<ul>
+<li>
+<a href="https://opscode.github.io/bento/">Bento</a> by OpsCode</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/jbarker">jbarker</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
